@@ -21,7 +21,7 @@ s = partial with summry node
 S = has a JFFS2 summary node
 
 Something like this:
-
+**4**
 $ mtd_check /dev/mtd0
 Flash type of /dev/mtd0 is 4 (MTD_NANDFLASH)
 Flash flags are 400
@@ -42,3 +42,4 @@ Summary blocks: 0
 Summary /dev/mtd0:
 Total Blocks: 760  Total Size: 1520.0 KB
 Empty Blocks: 0, Full Blocks: 666, Partially Full: 91, Bad Blocks: 3
+**4**
