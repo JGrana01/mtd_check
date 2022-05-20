@@ -1,7 +1,9 @@
 #!/bin/sh
 
-# make sure router is running Entware and has an /opt/sbin directory
+# make sure router is running Entware and has an /opt/bin directory
 
+echo
+echo
 echo "mtd_check installer"
 echo "This will install the mtd_check application to /opt/bin"
 echo -n "To continue, enter Y "
@@ -11,6 +13,7 @@ if ! [ $a == "Y" -o $a == "y" ]; then
 	echo "ok - exiting"
 	exit
 fi
+echo
 echo -n "Checking for Entware"
 if ! [ -f /opt/bin/opkg ]; then
 	echo "Entware not installed"
@@ -18,20 +21,32 @@ if ! [ -f /opt/bin/opkg ]; then
 	exit
 fi
 echo " ok"
+echo
 
 # Check if an armv7l or aarch64 class router
 
 echo "Checking for armv7l or aarch64 class kernel"
 machtype=$(/bin/uname -m)
 echo "Reported: " $machtype
+echo
 
 if [ $machtype == "armv7l" ]; then
 	echo "Installing mtd_check for 32bit armv7l router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check7l" -o "/opt/sbin/mtd_check" && chmod 0755 /opt/sbin/mtd_check
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check7l" -o "/opt/bin/mtd_check" && chmod 0755 /opt/bin/mtd_check
 elif [ $machtype == "aarch64" ]; then
 	echo "Installing mtd_check for 64bit aarch64 router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check64" -o "/opt/sbin/mtd_check" && chmod 0755 /opt/sbin/mtd_check
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check64" -o "/opt/bin/mtd_check" && chmod 0755 /opt/bin/mtd_check
 else
 	echo "Sorry, mtd_check on runs on armv7l or aarch64 class routers"
+	exit
 fi
+
+if [ -x /opt/bin/mtd_check ]; then
+	echo
+	echo "Installed mtd_check in /opt/bin"
+	echo "Done"
+else
+	echo "Something went wrong, mtd_check not installed!!!"
+fi
+
 
