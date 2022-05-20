@@ -1,10 +1,18 @@
 # mtd_check
-Program to display information about the NAND  flash on Asuswrt routers
-To Install:
+
+## About
+mtd_check is a small Utility to give information on the NAND flash device on amrv7l and aarch64 based Asuswrt routers
+
+
+## Installation
+
+Using your preferred SSH client/terminal, copy and paste the following command, then press Enter:
 
 /usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check_install" -o "/jffs/scripts/mtd_check_install" && chmod 0755 /jffs/scripts/mtd_check_install && /jffs/scripts/mtd_check_install
 
-Usage:
+## Usage
+
+Mtd_check runs from the command line.
 
 $ mtd_check /dev/mtd[0-9] [-i] [-b]
 
@@ -21,8 +29,8 @@ s = partial with summry node
 S = has a JFFS2 summary node
 
 Something like this:
-****
-$ mtd_check /dev/mtd0
+
+```$ mtd_check /dev/mtd0
 Flash type of /dev/mtd0 is 4 (MTD_NANDFLASH)
 Flash flags are 400
 Block size 131072, page size 2048, OOB size 64
@@ -42,4 +50,5 @@ Summary blocks: 0
 Summary /dev/mtd0:
 Total Blocks: 760  Total Size: 1520.0 KB
 Empty Blocks: 0, Full Blocks: 666, Partially Full: 91, Bad Blocks: 3
-****
+```
+
