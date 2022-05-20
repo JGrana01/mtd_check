@@ -1,0 +1,1 @@
+/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check_install.sh" -o "/jffs/scripts/mtd_check_install" && chmod 0755 /jffs/scripts/mtd_check_install && /jffs/scripts/mtd_check_install
