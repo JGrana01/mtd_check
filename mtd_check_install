@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# make sure router is running Entware and has an /opt/sbin directory
+
+if ! [ -d /opt/sbin ]; then
+	echo "Need and /opt/sbin directory, normally installed by Entware"
+	echo "Can't install nand_check..."
+	exit
+fi
+
+
+# Check if an HND class router
+
+if [ $(uname -r | grep -c 4.1) -eq 1 ]; then
+	echo "nand_flash only runs on new 4.1.x kernels")
+	exit
+fi
+
+
+if [ $(uname -a | grep -c aarch64) -eq 1 ]; then
+	echo "Installing nand_check for 64bit HND router"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/nand_check/master/nand_check64" -o "/opt/sbin/nand_check" && chmod 0755 /opt/sbin/nand_check
+elif [ $(uname -a | grep -c armv7l) -eq 1 ]; then
+	echo "Installing nand_check for 32bit HND router"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/nand_check/master/nand_check7l" -o "/opt/sbin/nand_check" && chmod 0755 /opt/sbin/nand_check
+else
+	echo "Hmm, doesn't look like an HND router (i.e AX88U,AX86U,AX58U...)"
+	echo "Presently this router is not supported"
+fi
+
+
