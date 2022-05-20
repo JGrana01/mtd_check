@@ -4,7 +4,8 @@
 mtd_check is a small utility to display information on the flash mtd devices on armv7l and aarch64 based Asuswrt routers.
 If you are not sure what your version is, you can use this command:
 ```
-$ 
+$ uname -m
+```
 
 
 ## Installation
