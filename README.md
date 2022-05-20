@@ -1,9 +1,11 @@
 # mtd_check
 Program to display information about the NAND  flash on Asuswrt routers
 To Install:
+
 /usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check_install" -o "/jffs/scripts/mtd_check_install" && chmod 0755 /jffs/scripts/mtd_check_install && /jffs/scripts/mtd_check_install
 
 Usage:
+
 $ mtd_check /dev/mtd[0-9] [-i] [-b]
 
 The -i option just displays the Flash type, Block size, page size and OOB size along with the total number of blocks and bytes on the mtd partition.
@@ -19,6 +21,7 @@ s = partial with summry node
 S = has a JFFS2 summary node
 
 Something like this:
+
 $ mtd_check /dev/mtd0
 Flash type of /dev/mtd0 is 4 (MTD_NANDFLASH)
 Flash flags are 400
