@@ -21,12 +21,12 @@ The -b option only reports the number of bad blocks on the partition
 
 Without the -i or -b options, nand_flash will walk all the blocks showing their state:
 
-- B = bad block
-- . = Empty
-- - = Partially filled
-- = = Full
-- s = partial with summry node
-- S = has a JFFS2 summary node
+- B : bad block
+- . : Empty
+- - : Partially filled
+- = : Full
+- s : partial with summry node
+- S : has a JFFS2 summary node
 
 Something like this:
 
