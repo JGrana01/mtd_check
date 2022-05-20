@@ -2,30 +2,36 @@
 
 # make sure router is running Entware and has an /opt/sbin directory
 
-if ! [ -d /opt/sbin ]; then
-	echo "Need and /opt/sbin directory, normally installed by Entware"
-	echo "Can't install nand_check..."
+echo "mtd_check installer"
+echo "This will install the mtd_check application to /opt/bin"
+echo -n "To continue, enter Y "
+read a
+
+if ! [ $a == "Y" -o $a == "y" ]; then
+	echo "ok - exiting"
 	exit
 fi
-
-
-# Check if an HND class router
-
-if [ $(uname -r | grep -c 4.1) -eq 1 ]; then
-	echo "nand_flash only runs on new 4.1.x kernels")
+echo -n "Checking for Entware"
+if ! [ -f /opt/bin/opkg ]; then
+	echo "Entware not installed"
+	echo "Can't install mtd_check..."
 	exit
 fi
+echo " ok"
 
+# Check if an armv7l or aarch64 class router
 
-if [ $(uname -a | grep -c aarch64) -eq 1 ]; then
-	echo "Installing nand_check for 64bit HND router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/nand_check/master/nand_check64" -o "/opt/sbin/nand_check" && chmod 0755 /opt/sbin/nand_check
-elif [ $(uname -a | grep -c armv7l) -eq 1 ]; then
-	echo "Installing nand_check for 32bit HND router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/nand_check/master/nand_check7l" -o "/opt/sbin/nand_check" && chmod 0755 /opt/sbin/nand_check
+echo "Checking for armv7l or aarch64 class kernel"
+machtype=$(/bin/uname -m)
+echo "Reported: " $machtype
+
+if [ $machtype == "armv7l" ]; then
+	echo "Installing mtd_check for 32bit armv7l router"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check7l" -o "/opt/sbin/mtd_check" && chmod 0755 /opt/sbin/mtd_check
+elif [ $machtype == "aarch64" ]; then
+	echo "Installing mtd_check for 64bit aarch64 router"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check64" -o "/opt/sbin/mtd_check" && chmod 0755 /opt/sbin/mtd_check
 else
-	echo "Hmm, doesn't look like an HND router (i.e AX88U,AX86U,AX58U...)"
-	echo "Presently this router is not supported"
+	echo "Sorry, mtd_check on runs on armv7l or aarch64 class routers"
 fi
-
 
