@@ -41,7 +41,7 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
-#define VERSION 0.2
+#define VERSION 0.3
 
 static unsigned long start_addr;	/* start address */
 
@@ -154,6 +154,7 @@ int main(int argc, char **argv)
 	int bad_block;
 	int summary_info;
 	int justinfo = 0;
+	int dostrict = 0;
 	int justbb = 0;
 	int justecc = 0;
 	int formtdmon=0;
@@ -162,14 +163,15 @@ int main(int argc, char **argv)
 	int mtdev = 0;
 
 	if (argc < 2) {
-		printf("Usage: mtd_check [-ib] /dev/mtdX\n");
-		printf(" where X is the flash device partition number\n");
+		printf("Usage: mtd_check [-ibervV] /dev/mtdX\n");
+		printf(" where X is the flash device number\n");
 		printf("  options:\n");
-		printf("     -i output information on the partition and exit\n");
-		printf("     -b just output number of bad blocks on the partition and exit\n");
+		printf("     -i output information on the device and exit\n");
+		printf("     -b just output number of bad blocks on the device and exit\n");
 		printf("     -e output ECC information and number of bad blocks on the partition and exit\n");
 		printf("     -r display nand regions\n");
-		printf("     -v verbos - show info, blocks and regions\n");
+		printf("     -s strict mode - omit legacy nand devices without reported OOB blocksize\n");
+		printf("     -v verbose - show info, blocks and regions\n");
 		printf("     -V show mtd_check version\n");
 		exit(0);
 		}
@@ -195,6 +197,9 @@ int main(int argc, char **argv)
 				case 'r':
 					showregions=1;
 					break;
+				case 's':
+					dostrict=1;
+					break;
 				case 'v':
 					showall=1;
 					break;
@@ -205,6 +210,8 @@ int main(int argc, char **argv)
                  			printf("Invalid option %c.\n",argv[i][1]);
 					printf("  -i for nand info only\n");
 					printf("  -b for number of bad blocks only\n");
+					printf("  -r show regions (if any)\n");
+					printf("  -s run strict mode (don't allow older nands with 0 oobsize)\n");
 					printf("  -e for ECC information and number of bad blocks only\n");
 					printf("  -V for mtd_check version\n");
                  			exit(1);
@@ -243,6 +250,8 @@ int main(int argc, char **argv)
 		close(fd);
 		exit(0);
 	}
+
+/* hidden command for mtdmon - much easier to extract data */
 
 	if (formtdmon == 1) {
 		printf("%d %d %d \n", eccinfo.badblocks, eccinfo.corrected, eccinfo.failed);
@@ -303,12 +312,12 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Make sure device page sizes are valid */
+	/* Make sure device page sizes are valid if runninc strict mode */
 	if (!(meminfo.oobsize == 128) &&
 	    !(meminfo.oobsize == 64) &&
 	    !(meminfo.oobsize == 32) &&
-	    !(meminfo.oobsize == 16) && !(meminfo.oobsize == 8)) {
-		fprintf(stderr, "Unknown type of flash (not normal NAND)\n");
+	    !(meminfo.oobsize == 16) && !(meminfo.oobsize == 8) && (dostrict == 1)) {
+		fprintf(stderr, "Unknown type of flash (not normal NAND - oobsize: %d)\n", meminfo.oobsize);
 		close(fd);
 		exit(1);
 	}
@@ -320,6 +329,14 @@ int main(int argc, char **argv)
 
 	printf("Block size ");
 	printsize(meminfo.erasesize);
+
+/* for potential old NAND devices, if no valid erasesize then bail */
+
+	if (meminfo.erasesize == 0) {
+		fprintf(stderr, "Unknown type of flash (not normal NAND - erasesize = 0)\n");
+		close(fd);
+		exit(1);
+	}
 	printf("  Page size ");
 	printsize(bs);
 	printf("  OOB size ");
