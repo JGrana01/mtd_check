@@ -15,7 +15,7 @@
  *    B        Bad block
  *    .        Empty
  *    -        Partially filled
- *    =        Full, no summary node
+ *    *        Full, no summary node
  *    S        Full, summary node
  *
  * This program is based on jffs2dump by Thomas Gleixner
@@ -41,6 +41,7 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
+#define VERSION 0.2
 
 static unsigned long start_addr;	/* start address */
 
@@ -49,6 +50,16 @@ int emptyblock = 0;
 int partialblock = 0;
 int fullblock = 0;
 int summaryblock = 0;
+
+void printsize (int x)
+{
+	int i;
+	static const char *flags = "KMGT";
+	printf ("%u ",x);
+	for (i = 0; x >= 1024 && flags[i] != '\0'; i++) x /= 1024;
+	i--;
+	if (i >= 0) printf ("(%u%c)",x,flags[i]);
+}
 
 static void print_block(unsigned long block_num,
 			int bad, int sum, int erase_block_size, int good_data)
@@ -74,13 +85,61 @@ static void print_block(unsigned long block_num,
 				summaryblock++;
 			}
 			else {
-				printf("=");
+				printf("*");
 				fullblock++;
 			}
 		}
 	}
 	if (block_num % 80 == 79)
 		printf("\n");
+}
+
+static int getregions (int fd,struct region_info_user *regions,int *n)
+{
+	int i,err;
+	err = ioctl (fd,MEMGETREGIONCOUNT,n);
+	if (err) return (err);
+	if (*n > 0) {
+		for (i = 0; i < *n; i++)
+		{
+			regions[i].regionindex = i;
+			err = ioctl (fd,MEMGETREGIONINFO,&regions[i]);
+			if (err) return (err);
+		}
+	}
+	else printf("No Region Information on device\n");
+	return (0);
+}
+
+int printregions(int fd)
+{
+	int err,i,n;
+	static struct region_info_user region[1024];
+
+	err = getregions (fd,region,&n);
+	if (err < 0)
+	{
+		perror ("MEMGETREGIONCOUNT");
+		return (1);
+	}
+	if (n > 0){
+	printf ("\n"
+			"regions = %d\n"
+			"\n",
+			n);
+
+		for (i = 0; i < n; i++) {
+			printf ("region[%d].offset = 0x%.8x\n"
+					"region[%d].erasesize = ",
+					i,region[i].offset,i);
+			printsize (region[i].erasesize);
+			printf ("\nregion[%d].numblocks = %d\n"
+					"region[%d].regionindex = %d\n",
+					i,region[i].numblocks,
+					i,region[i].regionindex);
+		}
+	}
+	return(0);
 }
 
 int main(int argc, char **argv)
@@ -96,8 +155,11 @@ int main(int argc, char **argv)
 	int summary_info;
 	int justinfo = 0;
 	int justbb = 0;
-	int totalblocks = 0;
-	float totalsize = 0; 
+	int justecc = 0;
+	int formtdmon=0;
+	int showregions = 0;
+	int showall = 0;
+	int mtdev = 0;
 
 	if (argc < 2) {
 		printf("Usage: mtd_check [-ib] /dev/mtdX\n");
@@ -105,6 +167,10 @@ int main(int argc, char **argv)
 		printf("  options:\n");
 		printf("     -i output information on the partition and exit\n");
 		printf("     -b just output number of bad blocks on the partition and exit\n");
+		printf("     -e output ECC information and number of bad blocks on the partition and exit\n");
+		printf("     -r display nand regions\n");
+		printf("     -v verbos - show info, blocks and regions\n");
+		printf("     -V show mtd_check version\n");
 		exit(0);
 		}
 
@@ -112,24 +178,46 @@ int main(int argc, char **argv)
     	{
         	if (argv[i][0] == '-')
         	{
-             		if (argv[i][1] == 'i')
-                 		justinfo = 1;
-             		else if (argv[i][1] == 'b')
-				justbb = 1;
-			else
-             			{
-                 		printf("Invalid option %c.\n",argv[i][1]);
-				printf("Use -i for nand info only\n");
-				printf("Use -b for number of bad blocks only\n");
-                 		return 2;
-             			}
+			switch(argv[i][1])
+			{
+				case 'b':
+					justbb=1;
+					break;
+				case 'e':
+					justecc=1;
+					break;
+				case 'i':
+					justinfo=1;
+					break;
+				case 'z':
+					formtdmon=1;
+					break;
+				case 'r':
+					showregions=1;
+					break;
+				case 'v':
+					showall=1;
+					break;
+				case 'V':
+					printf("Version: %.1f\n",VERSION);
+					exit(0);
+				default:
+                 			printf("Invalid option %c.\n",argv[i][1]);
+					printf("  -i for nand info only\n");
+					printf("  -b for number of bad blocks only\n");
+					printf("  -e for ECC information and number of bad blocks only\n");
+					printf("  -V for mtd_check version\n");
+                 			exit(1);
+             		}
 		}
-		else
+		else {
 			/* Open MTD device */
 			if ((fd = open(argv[i], O_RDONLY)) == -1) {
 				perror("Can't open device");
 				exit(1);
 			}
+			mtdev=i;
+		}
         }
 
 	/* Fill in MTD device capability structure */
@@ -150,8 +238,24 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
+	if (justecc == 1) {
+		printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d\n\n", eccinfo.corrected,eccinfo.failed,eccinfo.badblocks);
+		close(fd);
+		exit(0);
+	}
 
-	printf("Flash type of %s is %d (", argv[i-1], meminfo.type);
+	if (formtdmon == 1) {
+		printf("%d %d %d \n", eccinfo.badblocks, eccinfo.corrected, eccinfo.failed);
+		close(fd);
+		exit(0);
+	}
+
+	if (showregions == 1){
+		printregions(fd);
+		exit(0);
+	}
+
+	printf("Flash type of %s is %d (", argv[mtdev], meminfo.type);
 		switch (meminfo.type) {
 			case 0:
 				printf("Absent!!!)\n");
@@ -191,7 +295,13 @@ int main(int argc, char **argv)
 	if (meminfo.flags&0x2000)
 		printf(" MTD_POWERUP_LOCK");
 	printf("\n");
-		
+
+/* can't go much further with ubi volumes, so bail */
+
+	if (meminfo.type == 7) {	
+		printf("MTD is UBI Volume\n");
+		exit(1);
+	}
 
 	/* Make sure device page sizes are valid */
 	if (!(meminfo.oobsize == 128) &&
@@ -208,18 +318,35 @@ int main(int argc, char **argv)
 	end_addr = meminfo.size;
 	bs = meminfo.writesize;
 
-	printf("Block size %u, page size %u, OOB size %u\n", meminfo.erasesize,
-	       bs, meminfo.oobsize);
-	printf("%lu bytes, %lu blocks\n", end_addr,
-	       end_addr / meminfo.erasesize);
+	printf("Block size ");
+	printsize(meminfo.erasesize);
+	printf("  Page size ");
+	printsize(bs);
+	printf("  OOB size ");
+	printsize(meminfo.oobsize);
+	printf("\n");
+	printf("Device: ");
+	printsize(end_addr);
+	printf(" bytes, ");
+	printsize(end_addr / meminfo.erasesize);
+	printf(" blocks\n");
 	printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d \n\n", eccinfo.corrected, eccinfo.failed,eccinfo.badblocks);
 
 	if (justinfo == 1){
 		close(fd);
 		exit(0);
 	}
+	if (showall == 1)
+		printregions(fd);
+
+
+	if (justinfo == 1) {
+		close(fd);
+		exit(0);
+	}
+
 	printf
-	    ("B Bad block; . Empty; - Partially filled; = Full; S has a JFFS2 summary node\n\n");
+	    ("B Bad block; . Empty; - Partially filled; * Full; S has a JFFS2 summary node\n\n");
 
 	block_buf = malloc(meminfo.erasesize);
 	for (ofs = start_addr; ofs < end_addr; ofs += meminfo.erasesize) {
@@ -262,11 +389,7 @@ int main(int argc, char **argv)
 	}
 	free(block_buf);
 	printf("\n\n");
-	totalblocks = emptyblock + partialblock + fullblock + badblock + summaryblock;
-	totalsize = (float) ((totalblocks*bs)/1024); 
-	printf("Summary %s:\n",argv[i-1]);
-	printf("Total Blocks: %d  Total Size: %.1f KB\n", totalblocks, totalsize);
+	printf("Summary %s:\n",argv[mtdev]);
 	printf("Empty Blocks: %d, Full Blocks: %d, Partially Full: %d, Bad Blocks: %d\n", emptyblock,fullblock,partialblock,badblock);
 	return 0;
 }
-
