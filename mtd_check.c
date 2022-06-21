@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 	}
 
 	if (justecc == 1) {
-		printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d\n\n", eccinfo.corrected,eccinfo.failed,eccinfo.badblocks);
+		printf("ECC Stats -  Corrected: %d   Failed: %d \n\n", eccinfo.corrected,eccinfo.failed);
 		close(fd);
 		exit(0);
 	}
@@ -267,31 +267,31 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	printf("Flash type of %s is %d (", argv[mtdev], meminfo.type);
+	printf("Flash type of %s is %d ", argv[mtdev], meminfo.type);
 		switch (meminfo.type) {
 			case 0:
 				printf("Absent!!!)\n");
 				exit(2);
 			case 1:
-				printf("MTD_RAM)\n");
+				printf("(RAM)\n");
 				break;
 			case 2:
-				printf("MTD_ROM)\n");
+				printf("(ROM)\n");
 				break;
 			case 3:
-				printf("MTD_NORFLASH)\n");
+				printf("(NORFLASH)\n");
 				break;
 			case 4:
-				printf("MTD_NANDFLASH)\n");
+				printf("(NANDFLASH)\n");
 				break;
 			case 6:
-				printf("MTD_DATAFLASH)\n");
+				printf("(DATAFLASH)\n");
 				break;
 			case 7:
-				printf("MTD_UBIVOLIME)\n");
+				printf("(UBIVOLIME)\n");
 				break;
 			case 8:
-				printf("MTD_MLCNANDFLASH)\n");
+				printf("(MLCNANDFLASH)\n");
 				break;
 		}
 
@@ -299,13 +299,13 @@ int main(int argc, char **argv)
 			
 	printf("Flash flags are 0x%x -", meminfo.flags);
 	if (meminfo.flags&0x400)
-		printf(" MTD_WRITEABLE");
+		printf(" WRITEABLE");
 	if (meminfo.flags&0x800)
-		printf(" MTD_BIT_WRITEABLE");
+		printf(" BIT_WRITEABLE");
 	if (meminfo.flags&0x1000)
-		printf(" MTD_NO_ERASE");
+		printf(" NO_ERASE");
 	if (meminfo.flags&0x2000)
-		printf(" MTD_POWERUP_LOCK");
+		printf(" POWERUP_LOCK");
 	printf("\n");
 
 /* can't go much further with ubi volumes, so bail */
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Make sure device page sizes are valid if runninc strict mode */
+	/* Make sure device page sizes are valid if running strict mode */
 	if (!(meminfo.oobsize == 128) &&
 	    !(meminfo.oobsize == 64) &&
 	    !(meminfo.oobsize == 32) &&
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
 		close(fd);
 		exit(1);
 	}
-	printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d  Reserved BB: %d \n\n", eccinfo.corrected, eccinfo.failed, eccinfo.badblocks, eccinfo.bbtblocks);
+	printf("ECC Stats -  Corrected: %d   Failed: %d  \n\n", eccinfo.corrected, eccinfo.failed);
 
 	if (justinfo == 1){
 		close(fd);
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 
 
 	printf
-	    ("B Bad block; . Empty; - Partially filled; * Full; S has a JFFS2 summary node\n\n");
+	    ("B Bad block; . Empty; - Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n");
 
 	block_buf = malloc(meminfo.erasesize);
 	for (ofs = start_addr; ofs < end_addr; ofs += meminfo.erasesize) {
@@ -411,6 +411,6 @@ int main(int argc, char **argv)
 	free(block_buf);
 	printf("\n");
 	printf("Summary %s:\n",argv[mtdev]);
-	printf("Empty Blocks: %d, Full Blocks: %d, Partially Full: %d, Bad Blocks: %d\n\n", emptyblock,fullblock,partialblock,eccinfo.badblocks);
+	printf("Empty Blocks: %d, Full Blocks: %d, Partially Full: %d, Bad Blocks: %d, Reserved Blocks (BBT) %d\n\n", emptyblock,fullblock,partialblock,eccinfo.badblocks,eccinfo.bbtblocks);
 	return 0;
 }
