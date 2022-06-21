@@ -42,7 +42,7 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
-#define VERSION 0.3
+#define VERSION 0.4
 
 static unsigned long start_addr;	/* start address */
 
