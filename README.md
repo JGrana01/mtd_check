@@ -51,6 +51,7 @@ Note that mtd11 (on an AX88U) is a ubi formatted partition and is not supported
 Without the -i or -b options, mtd_check will walk all the blocks showing their state:
 
 - **B**&nbsp; &nbsp; &nbsp;Bad block
+- **R**&nbsp; &nbsp; &nbsp;Reserved Block in Bad Block Table
 - **\.**&nbsp; &nbsp; &nbsp;Empty
 - **\-**&nbsp; &nbsp; &nbsp;Partially filled
 - **\=**&nbsp; &nbsp; &nbsp;Full
