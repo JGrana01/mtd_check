@@ -13,6 +13,7 @@
  *
  * Read a flash partition and report on block usage: for each eraseblock print
  *    B        Bad block
+ *    R        Reserved Bad Block Table
  *    .        Empty
  *    -        Partially filled
  *    *        Full, no summary node
@@ -62,10 +63,12 @@ void printsize (int x)
 }
 
 static void print_block(unsigned long block_num,
-			int bad, int sum, int erase_block_size, int good_data)
+			int bad, int sum, int erase_block_size, int good_data, int bbcount)
 {
 	if (bad) {
-		printf("B");
+		if (badblock < bbcount)
+			printf("B");
+		else printf("R");
 		badblock++;
 	}
 	else {
@@ -347,7 +350,13 @@ int main(int argc, char **argv)
 	printf(" bytes, ");
 	printsize(end_addr / meminfo.erasesize);
 	printf(" blocks\n");
-	printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d \n\n", eccinfo.corrected, eccinfo.failed,eccinfo.badblocks);
+
+	if (meminfo.oobsize == 0) {
+		printf("Device does not support Bad Block management and/or ECC\n");
+		close(fd);
+		exit(1);
+	}
+	printf("ECC Stats -  Corrected: %d   Failed: %d  Bad Blocks: %d  Reserved BB: %d \n\n", eccinfo.corrected, eccinfo.failed, eccinfo.badblocks, eccinfo.bbtblocks);
 
 	if (justinfo == 1){
 		close(fd);
@@ -356,11 +365,6 @@ int main(int argc, char **argv)
 	if (showall == 1)
 		printregions(fd);
 
-
-	if (justinfo == 1) {
-		close(fd);
-		exit(0);
-	}
 
 	printf
 	    ("B Bad block; . Empty; - Partially filled; * Full; S has a JFFS2 summary node\n\n");
@@ -402,11 +406,11 @@ int main(int argc, char **argv)
 				summary_info = 0;
 		}
 		print_block(ofs / meminfo.erasesize, bad_block, summary_info,
-			    meminfo.erasesize, j + 1);
+			    meminfo.erasesize, j + 1, eccinfo.badblocks);
 	}
 	free(block_buf);
-	printf("\n\n");
+	printf("\n");
 	printf("Summary %s:\n",argv[mtdev]);
-	printf("Empty Blocks: %d, Full Blocks: %d, Partially Full: %d, Bad Blocks: %d\n", emptyblock,fullblock,partialblock,badblock);
+	printf("Empty Blocks: %d, Full Blocks: %d, Partially Full: %d, Bad Blocks: %d\n\n", emptyblock,fullblock,partialblock,eccinfo.badblocks);
 	return 0;
 }
