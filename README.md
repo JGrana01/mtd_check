@@ -22,10 +22,17 @@ At some point I will likely update the script to check for updates. For now, it'
 
 Mtd_check runs from the command line.
 
-$ mtd_check /dev/mtd[0-X] [-i] [-b]
+$ mtd_check /dev/mtd[0-X] [-i] [-b] [-e] [-r] [-s] [-v] [-V]
 
-The -i option just displays the Flash type, Block size, page size and OOB size along with the total number of bytes and blocks on the mtd partition.
-The -b option only reports the number of bad blocks on the partition. This can be useful for sh/bash scripts to monitor mtd partitions for potential growing bad blocks.
+Where
+    -i option just displays the Flash type, Block size, page size and OOB size along with the total number of bytes and blocks on the mtd partition.
+    -b option only reports the number of bad blocks on the partition. This can be useful for sh/bash scripts to monitor mtd partitions for potential growing bad blocks.
+    -e option prints just the number of ECC (correctable and uncorrectable) errors on the device
+    -r displays information on nand regions
+    -s strict mode - omit legacy devices without a reported OOB blocksize
+    -v verbose - print all information (-i, -b, -e, -r)
+    -V show mtd_check version
+
 
 **Note: mtd_check only works with the mtd character devices (i.e. /dev/mtd0, /dev/mtd9, etc.) _not_ the block devices (/dev/mtdblock0, /dev/mtdblock9, etc.). It also will not report any information for ubi formatted mtd partitions.**
 
