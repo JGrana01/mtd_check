@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 	}
 
 	if (justecc == 1) {
-		printf("ECC Stats -  Corrected: %d   Failed: %d \n\n", eccinfo.corrected,eccinfo.failed);
+		printf("MTD Stats - Bad Blocks: %d  Corrected: %d  Uncorrected: %d\n\n",eccinfo.badblocks,eccinfo.corrected,eccinfo.failed);
 		close(fd);
 		exit(0);
 	}
