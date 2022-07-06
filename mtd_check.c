@@ -95,7 +95,12 @@ static void print_block(unsigned long block_num,
 			else
 				printf("%sB%s",BOLDRED,RESET);
 		}
-		else printf("R");
+		else {
+			if (printcolors == 0)
+			 	printf("R");
+			else
+			 	printf("%sR%s",BOLDCYAN,RESET);
+		}
 		badblock++;
 	}
 	else {
@@ -391,7 +396,10 @@ int main(int argc, char **argv)
 	printf(" blocks\n");
 
 	if (meminfo.oobsize == 0) {
-		printf("Device does not support Bad Block management and/or ECC\n");
+		if (printcolors == 0)
+			printf("Device does not support Bad Block management and/or ECC\n");
+		else
+			printf("%sDevice does not support Bad Block management and/or ECC\n%s",BOLDCYAN,RESET);
 		close(fd);
 		exit(1);
 	}
@@ -408,7 +416,7 @@ int main(int argc, char **argv)
 	if (printcolors == 0)
 		printf ("B Bad block; . Empty; - Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n");
 	else
-		printf ("%sB%s Bad block; %s.%s Empty; %s-%s Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n",BOLDRED,RESET,BOLDGREEN,RESET,BOLDYELLOW,RESET);
+		printf ("%sB%s Bad block; %s.%s Empty; %s-%s Partially filled; * Full; %sR%s Reserved (BBT); S has a JFFS2 summary node\n\n",BOLDRED,RESET,BOLDGREEN,RESET,BOLDYELLOW,RESET,BOLDCYAN,RESET);
 
 	block_buf = malloc(meminfo.erasesize);
 	for (ofs = start_addr; ofs < end_addr; ofs += meminfo.erasesize) {
