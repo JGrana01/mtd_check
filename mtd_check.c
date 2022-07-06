@@ -42,7 +42,29 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
-#define VERSION 0.4
+#define VERSION 0.5
+
+/* add color to output */
+
+
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
 
 static unsigned long start_addr;	/* start address */
 
@@ -51,6 +73,7 @@ int emptyblock = 0;
 int partialblock = 0;
 int fullblock = 0;
 int summaryblock = 0;
+int printcolors = 0;
 
 void printsize (int x)
 {
@@ -66,20 +89,32 @@ static void print_block(unsigned long block_num,
 			int bad, int sum, int erase_block_size, int good_data, int bbcount)
 {
 	if (bad) {
-		if (badblock < bbcount)
-			printf("B");
+		if (badblock < bbcount) {
+			if (printcolors == 0)
+				printf("B");
+			else
+				printf("%sB%s",BOLDRED,RESET);
+		}
 		else printf("R");
 		badblock++;
 	}
 	else {
 		if (good_data == 0) {
-			printf(".");
+			if (printcolors == 0)
+				printf(".");
+			else
+				printf("%s.%s",BOLDGREEN,RESET);
+
 			emptyblock++;
 	} else if (good_data < (erase_block_size / 2)) {
 			if (sum)
 				printf("s");
 			else {
-				printf("-");
+				if (printcolors == 0)
+					printf("-");
+				else
+					printf("%s-%s",BOLDYELLOW,RESET);
+
 				partialblock++;
 			}
 		} else {
@@ -173,6 +208,7 @@ int main(int argc, char **argv)
 		printf("     -b just output number of bad blocks on the device and exit\n");
 		printf("     -e output ECC information and number of bad blocks on the partition and exit\n");
 		printf("     -r display nand regions\n");
+		printf("     -c use colors when printing partition map\n");
 		printf("     -s strict mode - omit legacy nand devices without reported OOB blocksize\n");
 		printf("     -v verbose - show info, blocks and regions\n");
 		printf("     -V show mtd_check version\n");
@@ -199,6 +235,9 @@ int main(int argc, char **argv)
 					break;
 				case 'r':
 					showregions=1;
+					break;
+				case 'c':
+					printcolors=1;
 					break;
 				case 's':
 					dostrict=1;
@@ -366,8 +405,10 @@ int main(int argc, char **argv)
 		printregions(fd);
 
 
-	printf
-	    ("B Bad block; . Empty; - Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n");
+	if (printcolors == 0)
+		printf ("B Bad block; . Empty; - Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n");
+	else
+		printf ("%sB%s Bad block; %s.%s Empty; %s-%s Partially filled; * Full; R Reserved (BBT); S has a JFFS2 summary node\n\n",BOLDRED,RESET,BOLDGREEN,RESET,BOLDYELLOW,RESET);
 
 	block_buf = malloc(meminfo.erasesize);
 	for (ofs = start_addr; ofs < end_addr; ofs += meminfo.erasesize) {
