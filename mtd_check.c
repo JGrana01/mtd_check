@@ -42,7 +42,7 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
-#define VERSION 0.5
+#define VERSION 0.7
 
 /* add color to output */
 
@@ -256,7 +256,9 @@ int main(int argc, char **argv)
 				default:
                  			printf("Invalid option %c.\n",argv[i][1]);
 					printf("  -i for nand info only\n");
+					printf("  -I for nand, bad block and ecc only\n");
 					printf("  -b for number of bad blocks only\n");
+					printf("  -c add color to output messages\n");
 					printf("  -r show regions (if any)\n");
 					printf("  -s run strict mode (don't allow older nands with 0 oobsize)\n");
 					printf("  -e for ECC information and number of bad blocks only\n");
@@ -293,7 +295,7 @@ int main(int argc, char **argv)
 	}
 
 	if (justecc == 1) {
-		printf("MTD Stats - Bad Blocks: %d  Corrected: %d  Uncorrected: %d\n\n",eccinfo.badblocks,eccinfo.corrected,eccinfo.failed);
+		printf("MTD Stats:  Bad Blocks: %d  Corrected: %d  Uncorrected: %d\n\n",eccinfo.badblocks,eccinfo.corrected,eccinfo.failed);
 		close(fd);
 		exit(0);
 	}
@@ -355,7 +357,10 @@ int main(int argc, char **argv)
 /* can't go much further with ubi volumes, so bail */
 
 	if (meminfo.type == 7) {	
-		printf("MTD is UBI Volume\n");
+		if (printcolors == 0)
+			printf("MTD is UBI Volume\n");
+		else
+			printf("%sMTD is UBI Volume\n%s",BOLDYELLOW,RESET);
 		exit(1);
 	}
 
@@ -403,7 +408,13 @@ int main(int argc, char **argv)
 		close(fd);
 		exit(1);
 	}
-	printf("ECC Stats -  Corrected: %d   Failed: %d  \n\n", eccinfo.corrected, eccinfo.failed);
+
+	if (printcolors == 0)
+		printf("MTD Stats:  Bad Blocks: %d  ECC Corrected: %d  ECC Uncorrected: %d\n\n",eccinfo.badblocks,eccinfo.corrected,eccinfo.failed);
+	else
+		printf("%sMTD Stats:  Bad Blocks: %d  ECC Corrected: %d  ECC Uncorrected: %d%s\n\n",BOLDWHITE,eccinfo.badblocks,eccinfo.corrected,eccinfo.failed,RESET);
+
+/*	printf("ECC Stats -  Corrected: %d   Failed: %d  \n\n", eccinfo.corrected, eccinfo.failed); */
 
 	if (justinfo == 1){
 		close(fd);
