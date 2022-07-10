@@ -42,7 +42,7 @@ typedef struct mtd_ecc_stats mtd_ecc_stats_t;
 
 /* taken from linux/jffs2.h */
 #define JFFS2_SUM_MAGIC	0x02851885
-#define VERSION 0.7
+#define VERSION 0.8
 
 /* add color to output */
 
@@ -197,6 +197,7 @@ int main(int argc, char **argv)
 	int bad_block;
 	int summary_info;
 	int justinfo = 0;
+	int justdevinfo = 0;
 	int dostrict = 0;
 	int justbb = 0;
 	int justecc = 0;
@@ -211,6 +212,7 @@ int main(int argc, char **argv)
 		printf("  options:\n");
 		printf("     -i output information on the device and exit\n");
 		printf("     -b just output number of bad blocks on the device and exit\n");
+		printf("     -d just mtd device information and exit\n");
 		printf("     -e output ECC information and number of bad blocks on the partition and exit\n");
 		printf("     -r display nand regions\n");
 		printf("     -c use colors when printing partition map\n");
@@ -235,6 +237,9 @@ int main(int argc, char **argv)
 				case 'i':
 					justinfo=1;
 					break;
+				case 'd':
+					justdevinfo=1;
+					break;
 				case 'z':
 					formtdmon=1;
 					break;
@@ -255,9 +260,9 @@ int main(int argc, char **argv)
 					exit(0);
 				default:
                  			printf("Invalid option %c.\n",argv[i][1]);
-					printf("  -i for nand info only\n");
-					printf("  -I for nand, bad block and ecc only\n");
+					printf("  -i for nand, bad block and ecc only\n");
 					printf("  -b for number of bad blocks only\n");
+					printf("  -d for mtd device information only\n");
 					printf("  -c add color to output messages\n");
 					printf("  -r show regions (if any)\n");
 					printf("  -s run strict mode (don't allow older nands with 0 oobsize)\n");
@@ -409,12 +414,15 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	if (justdevinfo == 1){
+		close(fd);
+		exit(0);
+	}
+
 	if (printcolors == 0)
 		printf("MTD Stats:  Bad Blocks: %d  ECC Corrected: %d  ECC Uncorrected: %d\n\n",eccinfo.badblocks,eccinfo.corrected,eccinfo.failed);
 	else
 		printf("%sMTD Stats:  Bad Blocks: %d  ECC Corrected: %d  ECC Uncorrected: %d%s\n\n",BOLDWHITE,eccinfo.badblocks,eccinfo.corrected,eccinfo.failed,RESET);
-
-/*	printf("ECC Stats -  Corrected: %d   Failed: %d  \n\n", eccinfo.corrected, eccinfo.failed); */
 
 	if (justinfo == 1){
 		close(fd);
