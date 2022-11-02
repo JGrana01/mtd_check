@@ -2,7 +2,7 @@
  *  mtd_check.c
  *
  *  Copyright (C) 2009, 2017 Chris Simmonds (chris@2net.co.uk)
- *  jgrana@rochester.rr.com
+ *  jgranaroc@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
