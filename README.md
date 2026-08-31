@@ -14,10 +14,10 @@ Using your preferred SSH client/terminal, copy and paste the following command, 
 
 /usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check_install" -o "/jffs/scripts/mtd_check_install" && chmod 0755 /jffs/scripts/mtd_check_install && /jffs/scripts/mtd_check_install
 
-mtd_check_install will make sure you have Entware installed and that your kernel is an aarch64 version. If not, it will not install the appropriate binary (in /opt/bin) and exit.
+mtd_check_install will make sure that your kernel is an aarch64 version. If not, it will not it will warn and exit.
 The mtd_check_install scripts will stay in /jffs/scripts (it's small) and can be used to re-install/update the mtd_check binary.
 At some point I will likely update the script to check for updates. For now, it's very simple.
-Install will also install a helper script in /jffs/scripts called findmtd. With the newer Asuswrt firmware moving to ubifs this script can determine mtd device a ubifs is using.
+Install will also install a helper script in /jffs/scripts called findmtd.sh. With the newer Asuswrt firmware moving to ubifs this script can determine mtd device a ubifs is using.
 
 ## Usage
 
@@ -36,7 +36,9 @@ Where
     -V show mtd_check version
 
 
-**Note: mtd_check only works with the mtd character devices (i.e. /dev/mtd0, /dev/mtd9, etc.) _not_ the block devices (/dev/mtdblock0, /dev/mtdblock9, etc.). It also will not report any information for ubi formatted mtd partitions. Use the helper script findmtd to show the mtd device a ubifs is using**
+**Note: mtd_check only works with the mtd character devices (i.e. /dev/mtd0, /dev/mtd9, etc.) _not_ the block devices (/dev/mtdblock0, /dev/mtdblock9, etc.). It also will not report any information for ubi formatted mtd partitions. Use the helper script findmtd.sh to show the mtd device a ubifs is using
+
+i.e /jffs/scripts/findmtd.sh jffs2**
 
 One way  to see the available mtd partitions is to cat /proc/mtd:
 ```
