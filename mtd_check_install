@@ -1,11 +1,9 @@
 #!/bin/sh
 
-# make sure router is running Entware and has an /opt/sbin directory
-
 echo
 echo
 echo "mtd_check installer"
-echo "This will install the mtd_check application to /opt/bin"
+echo "This will install the mtd_check application to /opt/sbin"
 echo "and a small helper script (findmtd.sh) in /jffs/scripts"
 echo -n "To continue, enter Y "
 read a
@@ -14,14 +12,6 @@ if ! [ $a == "Y" -o $a == "y" ]; then
 	echo "ok - exiting"
 	exit
 fi
-echo
-echo -n "Checking for Entware"
-if ! [ -f /opt/bin/opkg ]; then
-	echo "Entware not installed"
-	echo "Can't install mtd_check..."
-	exit
-fi
-echo " ok"
 echo
 
 # Check if an armv7l or aarch64 class router
@@ -43,9 +33,9 @@ else
 	exit
 fi
 
-if [ -x /opt/bin/mtd_check ]; then
+if [ -x /opt/sbin/mtd_check ]; then
 	echo
-	echo "Installed mtd_check in /opt/bin"
+	echo "Installed mtd_check in /opt/sbin"
 	echo "Done"
 else
 	echo "Something went wrong, mtd_check not installed!!!"
