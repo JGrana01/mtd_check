@@ -1,11 +1,12 @@
 #!/bin/sh
 
-# make sure router is running Entware and has an /opt/bin directory
+# make sure router is running Entware and has an /opt/sbin directory
 
 echo
 echo
 echo "mtd_check installer"
 echo "This will install the mtd_check application to /opt/bin"
+echo "and a small helper script (findmtd.sh) in /jffs/scripts"
 echo -n "To continue, enter Y "
 read a
 
@@ -31,11 +32,12 @@ echo "Reported: " $machtype
 echo
 
 if [ $machtype == "armv7l" ]; then
-	echo "Installing mtd_check for 32bit armv7l router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check7l" -o "/opt/bin/mtd_check" && chmod 0755 /opt/bin/mtd_check
+	echo "Sorry, mtd_check only supports arm64 based routers..."
+	exit 1
 elif [ $machtype == "aarch64" ]; then
-	echo "Installing mtd_check for 64bit aarch64 router"
-	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check64" -o "/opt/bin/mtd_check" && chmod 0755 /opt/bin/mtd_check
+	echo "Installing mtd_check and its helper findmtd"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/mtd_check" -o "/opt/sbin/mtd_check" && chmod 0755 "/opt/sbin/mtd_check"
+	/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/JGrana01/mtd_check/master/findmtd.sh" -o "/jffs/scripts/findmtd.sh" && chmod 0755 "/jffs/scripts/findmtd.sh"
 else
 	echo "Sorry, mtd_check on runs on armv7l or aarch64 class routers"
 	exit
@@ -48,5 +50,4 @@ if [ -x /opt/bin/mtd_check ]; then
 else
 	echo "Something went wrong, mtd_check not installed!!!"
 fi
-
 
